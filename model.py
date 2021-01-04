@@ -60,28 +60,29 @@ class ModelG(nn.Module):
 
     def forward(self, x, labels):
 
-        print("in: ",x.shape)
+        # print("in: ",x.shape)
 
         batch_size = x.size(0)
+        # print("************",type(labels))
         y_ = self.fc2(labels)
         y_ = F.relu(y_)
         x = torch.cat([x, y_], 1)
-        print("before fc: ",x.shape)
+        # print("before fc: ",x.shape)
         x = self.fc(x)
-        print("after fc: ",x.shape)
+        # print("after fc: ",x.shape)
         x = x.view(batch_size, 64, 28, 32)
         x = self.bn1(x)
         x = F.relu(x)
         x = self.deconv1(x)
-        print("after dc1: ",x.shape)
+        # print("after dc1: ",x.shape)
         x = self.bn2(x)
         x = F.relu(x)
         x = self.deconv2(x)
-        print("after dc2: ", x.shape)
+        # print("after dc2: ", x.shape)
 
         x = self.bn3(x)
         x = F.relu(x)
         x = self.deconv3(x)
-        print("after dc3: ", x.shape)
+        # print("after dc3: ", x.shape)
         x = F.sigmoid(x)
         return x
