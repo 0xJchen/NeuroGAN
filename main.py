@@ -17,7 +17,6 @@ from model import *
 from loader import *
 
 
-
 def sample_image(n_row, batches_done):
     """Saves a grid of generated digits ranging from 0 to n_classes"""
     # Sample noise
@@ -132,11 +131,11 @@ for epoch in range(opt.n_epochs):
         gen_label_onehot.scatter_(1, gen_labels.view(batch_size, 1), 1)
         gen_label_onehot = Variable(gen_label_onehot)
         # print("before gen, z:{} gen_label:{}".format(z.shape,gen_label_onehot.shape))
-        
-        z=z.float()
+
+        z = z.float()
         gen_label_onehot = gen_label_onehot.float()
 
-        generator.forward(z,gen_label_onehot)
+        generator.forward(z, gen_label_onehot)
         gen_imgs = generator(z, gen_label_onehot)
         # print("####",gen_imgs.shape)
         # Loss measures generator's ability to fool the discriminator
@@ -157,7 +156,7 @@ for epoch in range(opt.n_epochs):
         real_onehot = real_onehot.cuda()
         real_onehot.resize_(batch_size, 14).zero_()
         real_onehot.scatter_(1, labels.view(batch_size, 1), 1)
-        real_onehot=Variable(real_onehot)
+        real_onehot = Variable(real_onehot)
 
         validity_real = discriminator(real_imgs, real_onehot)
         d_real_loss = adversarial_loss(validity_real, valid)
@@ -172,15 +171,17 @@ for epoch in range(opt.n_epochs):
         d_loss.backward()
         optimizer_D.step()
 
-        print(
-            "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-            % (epoch, opt.n_epochs, i, len(train_loader), d_loss.item(), g_loss.item())
-        )
+        if epoch % 100 == 0 or epoch <= 100:
+            print(
+                "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
+                % (epoch, opt.n_epochs, i, len(train_loader), d_loss.item(), g_loss.item())
+            )
 
         batches_done = epoch * len(train_loader) + i
         if batches_done % opt.sample_interval == 0:
             # sample_image(n_row=10, batches_done=batches_done)
-            z = Variable(FloatTensor(np.random.normal(0, 1, (14, opt.latent_dim))))  
+            z = Variable(FloatTensor(
+                np.random.normal(0, 1, (14, opt.latent_dim))))
             labels = np.array([num for num in range(14)])
 
             labels = Variable(LongTensor(labels))
@@ -193,15 +194,22 @@ for epoch in range(opt.n_epochs):
             gen_imgs = generator(z, gen_label_onehot)
             print(gen_imgs.shape)
             gen_imgs = gen_imgs.reshape(14, 29*259)
-            dat=scaler.inverse_transform(gen_imgs.cpu().data)
-            dat=dat.reshape(14,29,259)
+            dat = scaler.inverse_transform(gen_imgs.cpu().data)
+            dat = dat.reshape(14, 29, 259)
             for nu in range(14):
                 plt.matshow(dat[nu])
-                info = "batch_"+str(batches_done)+"_label_"+str(nu)
+                info = "images/"+"batch_"+str(batches_done)+"_label_"+str(nu)
                 plt.savefig(info)
             # gen_imgs=gen_img
             # save_image(gen_imgs.data, "images/%d.png" %
-            #         batches_done, nrow=n_row, normalize=True)       
+            #         batches_done, nrow=n_row, normalize=True)
+        if epoch % 500 == 0:
+            torch.save({'state_dict': discriminator.state_dict()},
+                       'model/model_d_epoch_{}.pth'.format(
+                epoch))
+            torch.save({'state_dict': generator.state_dict()},
+                       'model/model_g_epoch_{}.pth'.format(
+                epoch))
 
 # parser = argparse.ArgumentParser('Conditional DCGAN')
 # parser.add_argument('--batch_size', type=int, default=16,
