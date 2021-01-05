@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from model import *
 from loader import *
 import pickle
+from tqdm import trange
 latent_dim = 500
 batch_size = 16
 # load data
@@ -42,12 +43,11 @@ discriminator.cuda()
 
 generator.load_state_dict(torch.load(
 './model/model_g_epoch_45.pth')['state_dict'])
-
 z = Variable(torch.cuda.FloatTensor(
     np.random.normal(0, 1, (1, latent_dim))))
 # labels = np.array([num for num in range(14)])
 stimulus=[]
-for i in range(14):
+for i in trange(14):
 
     labels = (torch.tensor(np.array([i])))
 
@@ -65,4 +65,32 @@ for i in range(14):
     plt.savefig(info)
     stimulus.append(dat)
 
-pickle.dump(stimulus, open("stimulus", "wb"))
+pickle.dump(stimulus, open("new_stimulus", "wb"))
+stimuli={}
+stimuli["data"]=[]
+stimuli["label"]=[]
+for cnt in trange(8):
+    z = Variable(torch.cuda.FloatTensor(
+        np.random.normal(0, 1, (1, latent_dim))))
+    # labels = np.array([num for num in range(14)])
+    
+    for i in range(14):
+
+        labels = (torch.tensor(np.array([i])))
+
+        gen_label_onehot = torch.zeros(1, 14)
+        # gen_label_onehot = gen_label_onehot
+        gen_label_onehot.scatter_(1, labels.view(1, 1), 1)
+        gen_label_onehot = gen_label_onehot.cuda()
+        gen_imgs = generator(z, gen_label_onehot)
+        # print(gen_imgs.shape)
+        gen_imgs = gen_imgs.reshape(1, 29*259)
+        dat = scaler.inverse_transform(gen_imgs.cpu().data)
+        dat = dat.reshape(29, 259)
+        plt.matshow(dat)
+        info = "validate/"+"cnt_"+str(cnt)+"_label_"+str(i)
+        plt.savefig(info)
+        dat.reshape(29*259)
+        stimuli["data"].append(dat)
+        stimuli["label"].append(i)
+pickle.dump(stimuli, open("stimuli_svm", "wb"))

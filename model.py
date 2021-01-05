@@ -100,3 +100,8 @@ class ModelG(nn.Module):
         # print("after dc3: ", x.shape)
         x = self.tan(x)
         return x
+if __name__ == "__main__":
+    a = ModelD()
+    b=ModelG(500)
+    print(a)
+    print(b)
