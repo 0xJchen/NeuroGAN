@@ -57,7 +57,7 @@ if __name__ == "__main__":
                         help="dimensionality of the latent space")
     parser.add_argument("--n_classes", type=int, default=14,
                         help="number of classes for dataset")
-    parser.add_argument("--sample_interval", type=int, default=50,
+    parser.add_argument("--sample_interval", type=int, default=25,
                         help="interval between image sampling")
     opt = parser.parse_args()
     print(opt)
@@ -68,16 +68,13 @@ if __name__ == "__main__":
         transforms.Normalize([0.5], [0.5])
     ])
     light_train = CustomDatasetFromCSV("train", img_transform)
-    # custom_mnist_from_csv.__getitem__(10)
-    # test_g=ModelD()
-    # x=torch.zeros((1,29,259))
-    # l=torch.zeros((1,14))
-    # test_g.forward(x,l)
+
     train_loader = DataLoader(light_train,
                               batch_size=opt.batch_size, shuffle=True)
 
     # Loss functions
-    adversarial_loss = torch.nn.MSELoss()
+    # adversarial_loss = torch.nn.MSELoss()
+    adversarial_loss = torch.nn.BCEWithLogitsLoss()
 
     # Initialize generator and discriminator
     generator = ModelG(opt.latent_dim)
@@ -120,12 +117,13 @@ for epoch in range(opt.n_epochs):
         # Sample noise and labels as generator input
         z = Variable(FloatTensor(np.random.normal(
             0, 1, (batch_size, opt.latent_dim))))
-        gen_labels = Variable(LongTensor(
+        gen_labels = Variable(torch.tensor(
             np.random.randint(0, opt.n_classes, batch_size)))
+        gen_labels = gen_labels.cuda()
         # print(gen_labels.shape,batch_size,gen_labels)
         # Generate a batch of images
 
-        gen_label_onehot = torch.FloatTensor(opt.batch_size, 14)
+        gen_label_onehot = torch.zeros(opt.batch_size, 14)
         gen_label_onehot = gen_label_onehot.cuda()
         gen_label_onehot.resize_(batch_size, 14).zero_()
         gen_label_onehot.scatter_(1, gen_labels.view(batch_size, 1), 1)
@@ -143,7 +141,8 @@ for epoch in range(opt.n_epochs):
         g_loss = adversarial_loss(validity, valid)
 
         g_loss.backward()
-        optimizer_G.step()
+        if i%5==0:
+            optimizer_G.step()
 
         # ---------------------
         #  Train Discriminator
@@ -203,13 +202,13 @@ for epoch in range(opt.n_epochs):
             # gen_imgs=gen_img
             # save_image(gen_imgs.data, "images/%d.png" %
             #         batches_done, nrow=n_row, normalize=True)
-        if epoch % 500 == 0:
+        if epoch%5==0:
             torch.save({'state_dict': discriminator.state_dict()},
-                       'model/model_d_epoch_{}.pth'.format(
-                epoch))
+                       'model/model_d_epoch_{}_batch_{}.pth'.format(
+                epoch,batches_done))
             torch.save({'state_dict': generator.state_dict()},
-                       'model/model_g_epoch_{}.pth'.format(
-                epoch))
+                       'model/model_g_epoch_{}_batch_{}.pth'.format(
+                epoch, batches_done))
 
 # parser = argparse.ArgumentParser('Conditional DCGAN')
 # parser.add_argument('--batch_size', type=int, default=16,
