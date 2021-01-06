@@ -41,7 +41,7 @@ if __name__ == "__main__":
     os.makedirs("images", exist_ok=True)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_epochs", type=int, default=10,
+    parser.add_argument("--n_epochs", type=int, default=100,
                         help="number of epochs of training")
     parser.add_argument("--batch_size", type=int, default=16,
                         help="size of the batches")
@@ -170,12 +170,6 @@ for epoch in range(opt.n_epochs):
         d_loss.backward()
         optimizer_D.step()
 
-        if epoch % 100 == 0 or epoch <= 100:
-            print(
-                "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-                % (epoch, opt.n_epochs, i, len(train_loader), d_loss.item(), g_loss.item())
-            )
-
         batches_done = epoch * len(train_loader) + i
         if batches_done % opt.sample_interval == 0:
             # sample_image(n_row=10, batches_done=batches_done)
@@ -191,7 +185,6 @@ for epoch in range(opt.n_epochs):
             gen_label_onehot = Variable(gen_label_onehot)
 
             gen_imgs = generator(z, gen_label_onehot)
-            print(gen_imgs.shape)
             gen_imgs = gen_imgs.reshape(14, 29*259)
             dat = scaler.inverse_transform(gen_imgs.cpu().data)
             dat = dat.reshape(14, 29, 259)
@@ -199,9 +192,6 @@ for epoch in range(opt.n_epochs):
                 plt.matshow(dat[nu])
                 info = "images/"+"batch_"+str(batches_done)+"_label_"+str(nu)
                 plt.savefig(info)
-            # gen_imgs=gen_img
-            # save_image(gen_imgs.data, "images/%d.png" %
-            #         batches_done, nrow=n_row, normalize=True)
         if epoch%5==0:
             torch.save({'state_dict': discriminator.state_dict()},
                        'model/model_d_epoch_{}_batch_{}.pth'.format(
