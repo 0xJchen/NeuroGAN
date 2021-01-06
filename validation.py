@@ -42,27 +42,6 @@ def generate_svm_data(batch_cnt):
     generator.load_state_dict(torch.load(cur_dir)['state_dict'])
     z = Variable(torch.cuda.FloatTensor(
         np.random.normal(0, 1, (1, latent_dim))))
-    # labels = np.array([num for num in range(14)])
-    # stimulus=[]
-    # for i in trange(14):
-
-    #     labels = (torch.tensor(np.array([i])))
-
-    #     gen_label_onehot = torch.zeros(1, 14)
-    #     # gen_label_onehot = gen_label_onehot
-    #     gen_label_onehot.scatter_(1, labels.view(1, 1), 1)
-    #     gen_label_onehot=gen_label_onehot.cuda()
-    #     gen_imgs = generator(z, gen_label_onehot)
-    #     # print(gen_imgs.shape)
-    #     gen_imgs = gen_imgs.reshape(1, 29*259)
-    #     dat=scaler.inverse_transform(gen_imgs.cpu().data)
-    #     dat = dat.reshape(29, 259)
-    #     plt.matshow(dat)
-    #     info = "validate/"+"_label_"+str(i)
-    #     plt.savefig(info)
-    #     stimulus.append(dat)
-
-    # # pickle.dump(stimulus, open("new_stimulus", "wb"))
 
     stimuli = {}
     stimuli["data"] = []

@@ -39,7 +39,7 @@ def sample_image(n_row, batches_done):
 
 if __name__ == "__main__":
     os.makedirs("images", exist_ok=True)
-
+    os.makedirs("model", exist_ok=True)
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_epochs", type=int, default=100,
                         help="number of epochs of training")
